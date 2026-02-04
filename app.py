@@ -555,7 +555,7 @@ def print_final(res: Results) -> None:
 # Streamlit UI (Hidden Math)
 # -----------------------------
 st.set_page_config(page_title="Mike's Productivity/Unit Machine for Therapist - Multi-Grid", layout="centered")
-st.title("Mike's Productivity/Unit Machine (v3) - Multi-Grid (Therapist + CM Codes)")
+st.title("Mike's Productivity/Unit Machine (v3) - Multi-Grid Therapist Only")
 
 
 # Session init
