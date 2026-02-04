@@ -574,7 +574,6 @@ def do_reset() -> None:
     st.session_state["last_result"] = None
     st.session_state["last_audit_payload"] = None
     st.session_state["last_error"] = None
-    st.rerun()
 
 
 k = st.session_state["reset_counter"]
