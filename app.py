@@ -600,20 +600,25 @@ with col_reset:
 st.divider()
 
 
+def fail(msg: str) -> None:
+    msg = (msg or "").strip()
+    if not msg.endswith("Tell Mike."):
+        msg = f"{msg}\n\nTell Mike."
+    st.session_state["last_error"] = msg
+    st.error(msg)
+    st.stop()
+
+
 if run:
     st.session_state["last_error"] = None
 
     try:
         hours_worked = float((hours or "").strip())
     except Exception:
-        st.session_state["last_error"] = "Please enter Hours Worked as a number only (example: 128.4)."
-        st.stop()
+        fail("Please enter Hours Worked as a number only (example: 128.4).")
 
     if uploaded is None:
-        st.session_state["last_error"] = (
-            "Please upload the Excel spreadsheet containing staff's 'Billed' and 'Non-Billable' numbers."
-        )
-        st.stop()
+        fail("Please upload the Excel spreadsheet containing staff's 'Billed' and 'Non-Billable' numbers.")
 
     file_bytes = uploaded.getvalue()
 
@@ -622,26 +627,23 @@ if run:
     try:
         pass1 = compute_pass(hours_worked, file_bytes, audit=audit1)
     except ValueError as e:
-        st.session_state["last_error"] = str(e)
-        st.stop()
+        fail(str(e))
     except Exception as e:
-        st.session_state["last_error"] = f"ERROR LOADING/PROCESSING FILE: {e}"
-        st.stop()
+        fail(f"ERROR LOADING/PROCESSING FILE: {e}")
 
     # PASS 2 (verification recompute from scratch)
     audit2: Dict[str, Any] = {}
     try:
         pass2 = compute_pass(hours_worked, file_bytes, audit=audit2)
     except Exception as e:
-        st.session_state["last_error"] = f"VERIFICATION FAILED — RESULTS NOT TRUSTWORTHY\n\nReason: {e}"
-        st.stop()
+        fail(f"VERIFICATION FAILED — RESULTS NOT TRUSTWORTHY\n\nReason: {e}")
 
     ok, mismatches = compare_results(pass1, pass2)
     if not ok:
-        st.session_state["last_error"] = (
-            "VERIFICATION FAILED — RESULTS NOT TRUSTWORTHY\n\nMetric(s) mismatched:\n" + "\n".join(mismatches)
+        fail(
+            "VERIFICATION FAILED — RESULTS NOT TRUSTWORTHY\n\nMetric(s) mismatched:\n"
+            + "\n".join(mismatches)
         )
-        st.stop()
 
     st.session_state["last_result"] = pass1
     st.session_state["last_audit_payload"] = {
@@ -663,6 +665,7 @@ if run:
         },
     }
     st.rerun()
+
 
 
 if st.session_state["last_error"]:
