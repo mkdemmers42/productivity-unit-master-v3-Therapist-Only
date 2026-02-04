@@ -105,30 +105,61 @@ def units_scale_b(minutes: float) -> int:
         return 15
     return 16
 
-
 def units_individual_therapy_scale_c(minutes: float) -> int:
     """
-    Scale C (Individual Therapy):
+    Scale C (Individual Therapy) — Extended
     0–15 -> 0
     16–30 -> 2
     31–45 -> 3
     46–67 -> 4
+    68–82 -> 5
+    83–97 -> 6
+    98–112 -> 7
+    113–127 -> 8
+    128–142 -> 9
+    143–157 -> 10
+    158–172 -> 11
+    173–187 -> 12
+    188–202 -> 13
+    203–217 -> 14
+    218–232 -> 15
+    233+ -> 16
     """
     m = 0.0 if minutes is None or (isinstance(minutes, float) and math.isnan(minutes)) else float(minutes)
 
-    if 0 <= m <= 15:
+    if m <= 15:
         return 0
-    if 16 <= m <= 30:
+    if m <= 30:
         return 2
-    if 31 <= m <= 45:
+    if m <= 45:
         return 3
-    if 46 <= m <= 67:
+    if m <= 67:
         return 4
+    if m <= 82:
+        return 5
+    if m <= 97:
+        return 6
+    if m <= 112:
+        return 7
+    if m <= 127:
+        return 8
+    if m <= 142:
+        return 9
+    if m <= 157:
+        return 10
+    if m <= 172:
+        return 11
+    if m <= 187:
+        return 12
+    if m <= 202:
+        return 13
+    if m <= 217:
+        return 14
+    if m <= 232:
+        return 15
+    return 16
 
-    raise ValueError(
-        f"UNIT GRID RANGE ERROR for Individual Therapy: Face-to-Face Time={m} not covered by Scale C "
-        "(covered ranges: 0–15, 16–30, 31–45, 46–67)."
-    )
+
 
 def units_assessment_lpha_scale_d(minutes: float) -> int:
     """
