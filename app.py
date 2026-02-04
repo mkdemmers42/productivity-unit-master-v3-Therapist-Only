@@ -9,34 +9,38 @@ import streamlit as st
 
 
 # -----------------------------
-# MASTER v3 Configuration
+# MASTER v3 Configuration (Merged Codes + Multi-Grid Billing)
 # -----------------------------
+
+# All known codes (merged, no duplicates because sets)
 VALID_CODES = {
+    # Case manager / rehab / outreach universe
     "TCM/ICC",
     "Psychosocial Rehab - Individual",
     "Psychosocial Rehabilitation Group",
-    "Non-billable Attempted Contact",
-    "Client Non Billable Srvc Must Document",
-    "Crisis Intervention",
-    "Plan Development, non-physician",
     "Brief Contact Note",
     "Targeted Outreach",
-}
 
-BILLABLE_FACE_TO_FACE_CODES = {
-    "TCM/ICC",
-    "Psychosocial Rehab - Individual",
-    "Psychosocial Rehabilitation Group",
+    # Therapist / clinical universe
+    "Individual Therapy",
+    "Family Therapy",
+    "Assessment LPHA",
     "Crisis Intervention",
     "Plan Development, non-physician",
-    "Brief Contact Note",
-    "Targeted Outreach",
-}
 
-NON_BILLABLE_FTF_CODES = {
+    # Non-billable
     "Non-billable Attempted Contact",
     "Client Non Billable Srvc Must Document",
 }
+
+# Non-billable codes (always 0 units)
+NON_BILLABLE_CODES = {
+    "Non-billable Attempted Contact",
+    "Client Non Billable Srvc Must Document",
+}
+
+# Billable codes = everything valid except non-billable
+BILLABLE_FACE_TO_FACE_CODES = VALID_CODES - NON_BILLABLE_CODES
 
 REQUIRED_COLS_CANONICAL = [
     "Procedure Code Name",
@@ -47,6 +51,152 @@ REQUIRED_COLS_CANONICAL = [
 
 TOL_MINUTES_WORKED = 0.1
 TOL_PERCENT = 0.01
+
+
+# -----------------------------
+# Unit Grid Definitions (Per Your Rules)
+# -----------------------------
+
+def units_scale_b(minutes: float) -> int:
+    """
+    Scale B (Clinical grid):
+    0–8 -> 0
+    8–23 -> 1
+    ...
+    218–233 -> 15
+    233+ -> 16
+    """
+    if minutes is None or (isinstance(minutes, float) and math.isnan(minutes)):
+        m = 0.0
+    else:
+        m = float(minutes)
+
+    if m <= 8:
+        return 0
+    if m <= 23:
+        return 1
+    if m <= 38:
+        return 2
+    if m <= 53:
+        return 3
+    if m <= 68:
+        return 4
+    if m <= 83:
+        return 5
+    if m <= 98:
+        return 6
+    if m <= 113:
+        return 7
+    if m <= 128:
+        return 8
+    if m <= 143:
+        return 9
+    if m <= 158:
+        return 10
+    if m <= 173:
+        return 11
+    if m <= 188:
+        return 12
+    if m <= 203:
+        return 13
+    if m <= 218:
+        return 14
+    if m <= 233:
+        return 15
+    return 16
+
+
+def units_individual_therapy_scale_c(minutes: float) -> int:
+    """
+    Scale C (Individual Therapy):
+    0–15 -> 0
+    16–30 -> 2
+    31–45 -> 3
+    46–67 -> 4
+    """
+    m = 0.0 if minutes is None or (isinstance(minutes, float) and math.isnan(minutes)) else float(minutes)
+
+    if 0 <= m <= 15:
+        return 0
+    if 16 <= m <= 30:
+        return 2
+    if 31 <= m <= 45:
+        return 3
+    if 46 <= m <= 67:
+        return 4
+
+    raise ValueError(
+        f"UNIT GRID RANGE ERROR for Individual Therapy: Face-to-Face Time={m} not covered by Scale C "
+        "(covered ranges: 0–15, 16–30, 31–45, 46–67)."
+    )
+
+
+def units_assessment_lpha_scale_d(minutes: float) -> int:
+    """
+    Scale D (Assessment LPHA):
+    0–30 -> 0
+    31–45 -> 3
+    46–67 -> 4
+    """
+    m = 0.0 if minutes is None or (isinstance(minutes, float) and math.isnan(minutes)) else float(minutes)
+
+    if 0 <= m <= 30:
+        return 0
+    if 31 <= m <= 45:
+        return 3
+    if 46 <= m <= 67:
+        return 4
+
+    raise ValueError(
+        f"UNIT GRID RANGE ERROR for Assessment LPHA: Face-to-Face Time={m} not covered by Scale D "
+        "(covered ranges: 0–30, 31–45, 46–67)."
+    )
+
+
+def units_family_therapy_scale_e(minutes: float) -> int:
+    """
+    Scale E (Family Therapy):
+    0–25 -> 0
+    27–57 -> 4
+    58–72 -> 5
+    73–87 -> 6
+
+    NOTE: 26 is not specified in your provided ranges.
+    This script treats any uncovered minute value as an error (so we do not silently mis-bill).
+    """
+    m = 0.0 if minutes is None or (isinstance(minutes, float) and math.isnan(minutes)) else float(minutes)
+
+    if 0 <= m <= 25:
+        return 0
+    if 27 <= m <= 57:
+        return 4
+    if 58 <= m <= 72:
+        return 5
+    if 73 <= m <= 87:
+        return 6
+
+    raise ValueError(
+        f"UNIT GRID RANGE ERROR for Family Therapy: Face-to-Face Time={m} not covered by Scale E "
+        "(covered ranges: 0–25, 27–57, 58–72, 73–87)."
+    )
+
+
+# Code -> unit scale dispatcher
+CODE_TO_UNIT_FN = {
+    # Scale B codes (per your instructions)
+    "TCM/ICC": units_scale_b,
+    "Psychosocial Rehab - Individual": units_scale_b,
+    "Psychosocial Rehabilitation Group": units_scale_b,
+    "Crisis Intervention": units_scale_b,
+    "Plan Development, non-physician": units_scale_b,
+    "Brief Contact Note": units_scale_b,
+    "Targeted Outreach": units_scale_b,
+
+    # Scale C / D / E codes (per your instructions)
+    "Individual Therapy": units_individual_therapy_scale_c,
+    "Assessment LPHA": units_assessment_lpha_scale_d,
+    "Family Therapy": units_family_therapy_scale_e,
+}
 
 
 # -----------------------------
@@ -81,12 +231,6 @@ def normalize_header(value: Any) -> str:
 
 
 def canonicalize_headers(cols: List[Any]) -> Dict[Any, str]:
-    """
-    MASTER v3 Header Normalization:
-    - Trim whitespace
-    - Convert line breaks to spaces
-    - Standardize face-to-face variants to canonical
-    """
     mapping: Dict[Any, str] = {}
     for c in cols:
         n = normalize_header(c)
@@ -104,7 +248,6 @@ def canonicalize_headers(cols: List[Any]) -> Dict[Any, str]:
             mapping[c] = "Documentation Time"
             continue
 
-        # Face-to-face variants
         ftf = low.replace("face to face", "face-to-face")
         ftf = ftf.replace("–", "-").replace("—", "-")
         if ftf == "face-to-face time":
@@ -115,14 +258,7 @@ def canonicalize_headers(cols: List[Any]) -> Dict[Any, str]:
     return mapping
 
 
-# -----------------------------
-# NEW: Auto-header detection (fixes "blank row above headers" issue)
-# -----------------------------
 def find_header_row_index_0_based(file_bytes: bytes, scan_rows: int = 40) -> int:
-    """
-    Finds the header row by scanning the first N rows for the presence of
-    'Procedure Code Name' (normalized). Returns 0-based row index.
-    """
     bio = io.BytesIO(file_bytes)
     preview = pd.read_excel(bio, header=None, nrows=scan_rows, dtype=object)
 
@@ -139,58 +275,10 @@ def find_header_row_index_0_based(file_bytes: bytes, scan_rows: int = 40) -> int
 
 
 def load_excel_auto_header(file_bytes: bytes, dtype=object) -> Tuple[pd.DataFrame, int]:
-    """
-    Loads Excel using auto-detected header row. Returns (df, header_row_index_0_based).
-    """
     header_idx = find_header_row_index_0_based(file_bytes)
-
     bio = io.BytesIO(file_bytes)
     df = pd.read_excel(bio, header=header_idx, dtype=dtype)
     return df, header_idx
-
-
-def unit_grid(minutes: float) -> int:
-    """
-    MASTER v3 unit grid. Ceiling at 16 for >248.
-    """
-    if minutes is None or (isinstance(minutes, float) and math.isnan(minutes)):
-        m = 0.0
-    else:
-        m = float(minutes)
-
-    if m <= 7:
-        return 0
-    if m <= 22:
-        return 1
-    if m <= 37:
-        return 2
-    if m <= 52:
-        return 3
-    if m <= 67:
-        return 4
-    if m <= 82:
-        return 5
-    if m <= 97:
-        return 6
-    if m <= 112:
-        return 7
-    if m <= 127:
-        return 8
-    if m <= 142:
-        return 9
-    if m <= 157:
-        return 10
-    if m <= 172:
-        return 11
-    if m <= 187:
-        return 12
-    if m <= 202:
-        return 13
-    if m <= 217:
-        return 14
-    if m <= 232:
-        return 15
-    return 16
 
 
 def round_minutes_worked(m: float) -> float:
@@ -201,16 +289,29 @@ def round_pct(p: float) -> float:
     return round(p, 2)
 
 
+def units_for_row(code: str, minutes: float) -> int:
+    """
+    Returns units for a single row based on the code's assigned scale.
+    Non-billable codes always return 0 units.
+    """
+    if code in NON_BILLABLE_CODES:
+        return 0
+
+    fn = CODE_TO_UNIT_FN.get(code)
+    if fn is None:
+        # If it's valid but not mapped, we should not guess.
+        raise ValueError(
+            f"UNIT SCALE NOT CONFIGURED for code: '{code}'. "
+            "This code is in VALID_CODES but has no unit scale mapping."
+        )
+    return int(fn(minutes))
+
+
 def compute_pass(
     hours_worked: float,
     file_bytes: bytes,
     audit: Optional[Dict[str, Any]] = None,
 ) -> Results:
-    """
-    FULL WORKFLOW PASS: load -> clean -> compute
-    Header now auto-detected (supports both clean exports and ones with blank rows).
-    Hidden math: return results only; optionally record audit details.
-    """
     minutes_worked_raw = hours_worked * 60.0
 
     # Load (AUTO header detection)
@@ -232,7 +333,7 @@ def compute_pass(
     # Exclude rows containing "total"
     df = df[~df["Procedure Code Name"].str.contains("total", case=False, na=False)].copy()
 
-    # Numeric coercion + zero fill (NO EXCEPTIONS)
+    # Numeric coercion + zero fill
     minute_cols = ["Travel Time", "Documentation Time", "Face-to-Face Time"]
     for c in minute_cols:
         df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0)
@@ -244,17 +345,23 @@ def compute_pass(
 
     # Totals
     non_billable_total = int(
-        df.loc[df["Procedure Code Name"].isin(NON_BILLABLE_FTF_CODES), "Face-to-Face Time"].sum()
+        df.loc[df["Procedure Code Name"].isin(NON_BILLABLE_CODES), "Face-to-Face Time"].sum()
     )
     documentation_total = int(df["Documentation Time"].sum())
     travel_total = int(df["Travel Time"].sum())
+
     minutes_billed = int(
         df.loc[df["Procedure Code Name"].isin(BILLABLE_FACE_TO_FACE_CODES), "Face-to-Face Time"].sum()
     )
 
-    # Units billed: apply grid per entry on billable rows; sum
-    billable_ftf = df.loc[df["Procedure Code Name"].isin(BILLABLE_FACE_TO_FACE_CODES), "Face-to-Face Time"]
-    units_billed = int(billable_ftf.apply(unit_grid).sum())
+    # Units billed: apply per-code unit mapping row-by-row
+    billable_rows = df[df["Procedure Code Name"].isin(BILLABLE_FACE_TO_FACE_CODES)].copy()
+    units_billed = int(
+        billable_rows.apply(
+            lambda r: units_for_row(str(r["Procedure Code Name"]), float(r["Face-to-Face Time"])),
+            axis=1
+        ).sum()
+    )
 
     # Percentages
     if minutes_worked_raw == 0:
@@ -292,6 +399,13 @@ def compute_pass(
         audit["renamed_columns"] = list(df.columns)
         audit["row_count_after_clean"] = int(len(df))
         audit["unique_codes"] = sorted(df["Procedure Code Name"].unique().tolist())
+        audit["code_to_scale"] = {
+            "Scale B": sorted([c for c, fn in CODE_TO_UNIT_FN.items() if fn == units_scale_b]),
+            "Scale C": ["Individual Therapy"],
+            "Scale D": ["Assessment LPHA"],
+            "Scale E": ["Family Therapy"],
+            "Non-Billable": sorted(list(NON_BILLABLE_CODES)),
+        }
         audit["intermediate"] = {
             "minutes_worked_raw": minutes_worked_raw,
             "minutes_billed": minutes_billed,
@@ -378,8 +492,8 @@ def print_final(res: Results) -> None:
 # -----------------------------
 # Streamlit UI (Hidden Math)
 # -----------------------------
-st.set_page_config(page_title="Mike's Productivity/Unit Machine - Case Managers Only", layout="centered")
-st.title("Mike's Productivity/Unit Machine (v3) - Case Managers Only")
+st.set_page_config(page_title="Mike's Productivity/Unit Machine - Multi-Grid", layout="centered")
+st.title("Mike's Productivity/Unit Machine (v3) - Multi-Grid (Therapist + CM Codes)")
 
 
 # Session init
@@ -394,7 +508,6 @@ if "reset_counter" not in st.session_state:
 
 
 def do_reset() -> None:
-    # Changing widget keys is the reliable way to clear text_input + file_uploader
     st.session_state["reset_counter"] += 1
     st.session_state["last_result"] = None
     st.session_state["last_audit_payload"] = None
@@ -402,7 +515,6 @@ def do_reset() -> None:
     st.rerun()
 
 
-# Widget keys that change after each reset
 k = st.session_state["reset_counter"]
 hours_key = f"hours_{k}"
 file_key = f"uploaded_file_{k}"
@@ -429,7 +541,6 @@ st.divider()
 if run:
     st.session_state["last_error"] = None
 
-    # Hours validation (failsafe)
     try:
         hours_worked = float((hours or "").strip())
     except Exception:
@@ -470,7 +581,6 @@ if run:
         )
         st.stop()
 
-    # Store results for display
     st.session_state["last_result"] = pass1
     st.session_state["last_audit_payload"] = {
         "pass1": audit1,
@@ -493,7 +603,6 @@ if run:
     st.rerun()
 
 
-# Display
 if st.session_state["last_error"]:
     st.error(st.session_state["last_error"])
 
