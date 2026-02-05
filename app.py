@@ -217,29 +217,54 @@ def units_assessment_lpha_scale_d(minutes: float) -> int:
 
 def units_family_therapy_scale_e(minutes: float) -> int:
     """
-    Scale E (Family Therapy):
-    0–25 -> 0
-    27–57 -> 4
-    58–72 -> 5
-    73–87 -> 6
+    Scale E (Family Therapy) — Extended & Gap-Free
 
-    NOTE: 26 is not specified in your provided ranges.
-    This script treats any uncovered minute value as an error (so we do not silently mis-bill).
+    0–26   -> 0
+    27–57  -> 4
+    58–72  -> 5
+    73–87  -> 6
+    88–102 -> 7
+    103–117 -> 8
+    118–132 -> 9
+    133–147 -> 10
+    148–162 -> 11
+    163–177 -> 12
+    178–192 -> 13
+    193–207 -> 14
+    208–222 -> 15
+    223+    -> 16
     """
+
     m = 0.0 if minutes is None or (isinstance(minutes, float) and math.isnan(minutes)) else float(minutes)
 
-    if 0 <= m <= 25:
+    if m <= 26:
         return 0
-    if 27 <= m <= 57:
+    if m <= 57:
         return 4
-    if 58 <= m <= 72:
+    if m <= 72:
         return 5
-    if 73 <= m <= 87:
+    if m <= 87:
         return 6
+    if m <= 102:
+        return 7
+    if m <= 117:
+        return 8
+    if m <= 132:
+        return 9
+    if m <= 147:
+        return 10
+    if m <= 162:
+        return 11
+    if m <= 177:
+        return 12
+    if m <= 192:
+        return 13
+    if m <= 207:
+        return 14
+    if m <= 222:
+        return 15
+    return 16
 
-    raise ValueError(
-        f"UNIT GRID RANGE ERROR for Family Therapy: Face-to-Face Time={m} not covered by Scale E "
-        "(covered ranges: 0–25, 27–57, 58–72, 73–87)."
     )
 
 
