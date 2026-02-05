@@ -265,7 +265,7 @@ def units_family_therapy_scale_e(minutes: float) -> int:
         return 15
     return 16
 
-    )
+    
 
 
 # Code -> unit scale dispatcher
