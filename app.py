@@ -7,6 +7,118 @@ from typing import Any, Dict, List, Optional, Tuple
 import pandas as pd
 import streamlit as st
 
+# -----------------------------
+# UI: Blueprint Skin (Option 4)
+# -----------------------------
+def apply_blueprint_skin():
+    st.markdown("""
+    <style>
+      /* -------- Blueprint background (subtle grid) -------- */
+      .stApp {
+        background-color: #0b1220;
+        background-image:
+          linear-gradient(rgba(61,174,233,0.06) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(61,174,233,0.06) 1px, transparent 1px),
+          radial-gradient(circle at 20% 10%, rgba(61,174,233,0.10), transparent 35%),
+          radial-gradient(circle at 80% 30%, rgba(128,90,213,0.10), transparent 40%);
+        background-size: 34px 34px, 34px 34px, 100% 100%, 100% 100%;
+        background-attachment: fixed;
+      }
+
+      /* -------- Sidebar (darker panel) -------- */
+      section[data-testid="stSidebar"] {
+        background: #091022;
+        border-right: 1px solid rgba(61,174,233,0.15);
+      }
+      section[data-testid="stSidebar"] * {
+        color: #e6edf3 !important;
+      }
+
+      /* -------- "Metal plate" header -------- */
+      .bp-header {
+        padding: 18px 18px 14px 18px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(17,26,46,0.92), rgba(9,16,34,0.92));
+        border: 1px solid rgba(61,174,233,0.22);
+        box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+        margin: 8px 0 14px 0;
+      }
+      .bp-header h1 {
+        margin: 0;
+        font-size: 28px;
+        letter-spacing: 0.5px;
+        color: #e6edf3;
+      }
+      .bp-header p {
+        margin: 6px 0 0 0;
+        opacity: 0.85;
+        color: #cfe8f6;
+      }
+
+      /* -------- Card look for metric widgets -------- */
+      div[data-testid="stMetric"] {
+        background: rgba(17,26,46,0.78);
+        border: 1px solid rgba(61,174,233,0.18);
+        border-radius: 18px;
+        padding: 14px 14px;
+        box-shadow: 0 10px 24px rgba(0,0,0,0.30);
+      }
+      div[data-testid="stMetricLabel"] > div {
+        opacity: 0.85;
+        letter-spacing: 0.3px;
+      }
+      div[data-testid="stMetricValue"] > div {
+        letter-spacing: 0.6px;
+      }
+
+      /* -------- Inputs as panels -------- */
+      div[data-testid="stFileUploader"],
+      div[data-testid="stSelectbox"],
+      div[data-testid="stTextInput"],
+      div[data-testid="stNumberInput"] {
+        background: rgba(17,26,46,0.60);
+        border: 1px solid rgba(61,174,233,0.14);
+        border-radius: 16px;
+        padding: 10px 10px 6px 10px;
+      }
+
+      /* -------- Buttons: rounded + glow edge -------- */
+      .stButton > button {
+        border-radius: 14px;
+        padding: 0.65rem 1rem;
+        border: 1px solid rgba(61,174,233,0.35);
+        background: linear-gradient(180deg, rgba(61,174,233,0.25), rgba(17,26,46,0.80));
+        color: #e6edf3;
+        box-shadow: 0 10px 22px rgba(0,0,0,0.35);
+      }
+      .stButton > button:hover {
+        border: 1px solid rgba(61,174,233,0.55);
+        filter: brightness(1.05);
+      }
+
+      /* -------- Expanders as panels -------- */
+      div[data-testid="stExpander"] {
+        background: rgba(17,26,46,0.55);
+        border: 1px solid rgba(61,174,233,0.14);
+        border-radius: 16px;
+      }
+
+      /* Reduce top padding a touch */
+      .block-container { padding-top: 1.25rem; }
+    </style>
+    """, unsafe_allow_html=True)
+
+
+apply_blueprint_skin()
+
+st.markdown("""
+<div class="bp-header">
+  <h1>Mike’s Productivity / Unit Machine</h1>
+  <p>Blueprint Mode: minutes → units → productivity, with verification built in.</p>
+</div>
+""", unsafe_allow_html=True)
+
+
 
 # -----------------------------
 # MASTER v3 Configuration (Merged Codes + Multi-Grid Billing)
