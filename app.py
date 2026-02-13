@@ -711,7 +711,7 @@ def print_final(res: Results) -> None:
 # -----------------------------
 # Streamlit UI (Hidden Math)
 # -----------------------------
-st.set_page_config(page_="Mike's Productivity/Unit Machine for Therapist", layout="centered")
+st.set_page_config(page_title="Mike's Productivity/Unit Machine for Therapist", layout="centered")
 st.title("Mike's Productivity/Unit Machine (v3) - Therapist Only")
 st.markdown("---")
 st.subheader("Need help running this app?")
