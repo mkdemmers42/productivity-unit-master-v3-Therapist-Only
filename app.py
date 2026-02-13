@@ -24,6 +24,7 @@ VALID_CODES = {
     # Therapist / clinical universe
     "Individual Therapy",
     "Family Therapy",
+    "Family Therapy - client present",
     "Assessment LPHA",
     "Crisis Intervention",
     "Plan Development, non-physician",
@@ -268,9 +269,11 @@ def units_family_therapy_scale_e(minutes: float) -> int:
     
 
 
-# Code -> unit scale dispatcher
 CODE_TO_UNIT_FN = {
-    # Scale B codes (per your instructions)
+
+    # -------------------------
+    # Scale B codes
+    # -------------------------
     "TCM/ICC": units_scale_b,
     "Psychosocial Rehab - Individual": units_scale_b,
     "Psychosocial Rehabilitation Group": units_scale_b,
@@ -279,10 +282,21 @@ CODE_TO_UNIT_FN = {
     "Brief Contact Note": units_scale_b,
     "Targeted Outreach": units_scale_b,
 
-    # Scale C / D / E codes (per your instructions)
+    # -------------------------
+    # Scale C (Individual Therapy)
+    # -------------------------
     "Individual Therapy": units_individual_therapy_scale_c,
+
+    # -------------------------
+    # Scale D (Assessment LPHA)
+    # -------------------------
     "Assessment LPHA": units_assessment_lpha_scale_d,
+
+    # -------------------------
+    # Scale E (Family Therapy)
+    # -------------------------
     "Family Therapy": units_family_therapy_scale_e,
+    "Family Therapy - client present": units_family_therapy_scale_e,
 }
 
 
@@ -479,20 +493,25 @@ def compute_pass(
         travel_pct=round_pct(travel_pct),
     )
 
-    # Audit (saved only for download, not displayed)
+       # Audit (saved only for download, not displayed)
     if audit is not None:
         audit["header_row_1_indexed"] = int(header_idx + 1)
         audit["original_columns"] = [str(c) for c in original_cols]
         audit["renamed_columns"] = list(df.columns)
         audit["row_count_after_clean"] = int(len(df))
         audit["unique_codes"] = sorted(df["Procedure Code Name"].unique().tolist())
+
         audit["code_to_scale"] = {
             "Scale B": sorted([c for c, fn in CODE_TO_UNIT_FN.items() if fn == units_scale_b]),
             "Scale C": ["Individual Therapy"],
             "Scale D": ["Assessment LPHA"],
-            "Scale E": ["Family Therapy"],
+            "Scale E": [
+                "Family Therapy",
+                "Family Therapy - client present",
+            ],
             "Non-Billable": sorted(list(NON_BILLABLE_CODES)),
         }
+
         audit["intermediate"] = {
             "minutes_worked_raw": minutes_worked_raw,
             "minutes_billed": minutes_billed,
@@ -506,6 +525,7 @@ def compute_pass(
             "documentation_pct_raw": documentation_pct,
             "travel_pct_raw": travel_pct,
         }
+
 
     return res
 
