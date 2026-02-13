@@ -601,6 +601,28 @@ def print_final(res: Results) -> None:
 # -----------------------------
 st.set_page_config(page_title="Mike's Productivity/Unit Machine for Therapist", layout="centered")
 st.title("Mike's Productivity/Unit Machine (v3) - Therapist Only")
+st.markdown("---")
+st.subheader("Need help running this app?")
+
+need_howto = st.radio(
+    "Would you like the How-To document?",
+    ["No", "Yes"],
+    horizontal=True
+)
+
+if need_howto == "Yes":
+    DOC_PATH = "How_to_Run_Mikes_Productivity_App.docx"
+    try:
+        with open(DOC_PATH, "rb") as f:
+            st.download_button(
+                label="Download How-To Guide (Word)",
+                data=f.read(),
+                file_name="How_to_Run_Mikes_Productivity_App.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            )
+    except FileNotFoundError:
+        st.warning("How-To document file not found in the app repo. Tell Mike.")
+
 
 
 # Session init
