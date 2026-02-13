@@ -7,6 +7,11 @@ from typing import Any, Dict, List, Optional, Tuple
 import pandas as pd
 import streamlit as st
 
+st.set_page_config(
+    page_title="Mike's Productivity/Unit Machine for Therapist",
+    layout="centered"
+)
+
 # -----------------------------
 # UI: Blueprint Skin (Option 4)
 # -----------------------------
