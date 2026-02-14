@@ -119,7 +119,7 @@ apply_blueprint_skin()
 st.markdown("""
 <div class="bp-header">
   <h1>Mike’s Productivity / Unit Machine</h1>
-  <p>Therapist Only • Life Made Easy</p>
+  <p>Life Made Easy • Therapist Only</p>
 </div>
 """, unsafe_allow_html=True)
 
