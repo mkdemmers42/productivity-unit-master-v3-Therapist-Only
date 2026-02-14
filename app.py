@@ -109,7 +109,10 @@ def apply_blueprint_skin():
       }
 
       /* Reduce top padding a touch */
-      .block-container { padding-top: 1.25rem; }
+     .block-container {
+    padding-top: 5rem;
+}
+
     </style>
     """, unsafe_allow_html=True)
 
