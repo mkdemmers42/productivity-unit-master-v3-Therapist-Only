@@ -119,7 +119,7 @@ apply_blueprint_skin()
 st.markdown("""
 <div class="bp-header">
   <h1>Mike’s Productivity / Unit Machine</h1>
-  <p>Blueprint Mode: minutes → units → productivity, with verification built in.</p>
+  <p>Therapist Only • Blueprint Mode • minutes → units → productivity</p>
 </div>
 """, unsafe_allow_html=True)
 
