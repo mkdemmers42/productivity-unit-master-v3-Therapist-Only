@@ -7,8 +7,13 @@ from typing import Any, Dict, List, Optional, Tuple
 import pandas as pd
 import streamlit as st
 
+# -----------------------------
+# App Config (MUST be first Streamlit call)
+# -----------------------------
+APP_TITLE = "Mike's Productivity/Unit Machine for Therapist"
+
 st.set_page_config(
-    page_title="Mike's Productivity/Unit Machine for Therapist",
+    page_title=APP_TITLE,
     layout="centered"
 )
 
@@ -109,13 +114,11 @@ def apply_blueprint_skin():
       }
 
       /* Reduce top padding a touch */
-     .block-container {
-    padding-top: 5rem;
-}
-
+      .block-container {
+        padding-top: 5rem;
+      }
     </style>
     """, unsafe_allow_html=True)
-
 
 apply_blueprint_skin()
 
@@ -126,13 +129,10 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-
-
 # -----------------------------
 # MASTER v3 Configuration (Merged Codes + Multi-Grid Billing)
 # -----------------------------
 
-# All known codes (merged, no duplicates because sets)
 VALID_CODES = {
     # Case manager / rehab / outreach universe
     "TCM/ICC",
@@ -154,13 +154,11 @@ VALID_CODES = {
     "Client Non Billable Srvc Must Document",
 }
 
-# Non-billable codes (always 0 units)
 NON_BILLABLE_CODES = {
     "Non-billable Attempted Contact",
     "Client Non Billable Srvc Must Document",
 }
 
-# Billable codes = everything valid except non-billable
 BILLABLE_FACE_TO_FACE_CODES = VALID_CODES - NON_BILLABLE_CODES
 
 REQUIRED_COLS_CANONICAL = [
@@ -173,20 +171,10 @@ REQUIRED_COLS_CANONICAL = [
 TOL_MINUTES_WORKED = 0.1
 TOL_PERCENT = 0.01
 
-
 # -----------------------------
 # Unit Grid Definitions (Per Your Rules)
 # -----------------------------
-
 def units_scale_b(minutes: float) -> int:
-    """
-    Scale B (Clinical grid):
-    0–8 -> 0
-    8–23 -> 1
-    ...
-    218–233 -> 15
-    233+ -> 16
-    """
     if minutes is None or (isinstance(minutes, float) and math.isnan(minutes)):
         m = 0.0
     else:
@@ -227,25 +215,6 @@ def units_scale_b(minutes: float) -> int:
     return 16
 
 def units_individual_therapy_scale_c(minutes: float) -> int:
-    """
-    Scale C (Individual Therapy) — Extended
-    0–15 -> 0
-    16–30 -> 2
-    31–45 -> 3
-    46–67 -> 4
-    68–82 -> 5
-    83–97 -> 6
-    98–112 -> 7
-    113–127 -> 8
-    128–142 -> 9
-    143–157 -> 10
-    158–172 -> 11
-    173–187 -> 12
-    188–202 -> 13
-    203–217 -> 14
-    218–232 -> 15
-    233+ -> 16
-    """
     m = 0.0 if minutes is None or (isinstance(minutes, float) and math.isnan(minutes)) else float(minutes)
 
     if m <= 15:
@@ -280,27 +249,7 @@ def units_individual_therapy_scale_c(minutes: float) -> int:
         return 15
     return 16
 
-
-
 def units_assessment_lpha_scale_d(minutes: float) -> int:
-    """
-    Scale D (Assessment LPHA) — Extended
-    0–30 -> 0
-    31–45 -> 3
-    46–67 -> 4
-    68–82 -> 5
-    83–97 -> 6
-    98–112 -> 7
-    113–127 -> 8
-    128–142 -> 9
-    143–157 -> 10
-    158–172 -> 11
-    173–187 -> 12
-    188–202 -> 13
-    203–217 -> 14
-    218–232 -> 15
-    233+ -> 16
-    """
     m = 0.0 if minutes is None or (isinstance(minutes, float) and math.isnan(minutes)) else float(minutes)
 
     if m <= 30:
@@ -333,29 +282,7 @@ def units_assessment_lpha_scale_d(minutes: float) -> int:
         return 15
     return 16
 
-
-
-
 def units_family_therapy_scale_e(minutes: float) -> int:
-    """
-    Scale E (Family Therapy) — Extended & Gap-Free
-
-    0–26   -> 0
-    27–57  -> 4
-    58–72  -> 5
-    73–87  -> 6
-    88–102 -> 7
-    103–117 -> 8
-    118–132 -> 9
-    133–147 -> 10
-    148–162 -> 11
-    163–177 -> 12
-    178–192 -> 13
-    193–207 -> 14
-    208–222 -> 15
-    223+    -> 16
-    """
-
     m = 0.0 if minutes is None or (isinstance(minutes, float) and math.isnan(minutes)) else float(minutes)
 
     if m <= 26:
@@ -386,14 +313,8 @@ def units_family_therapy_scale_e(minutes: float) -> int:
         return 15
     return 16
 
-    
-
-
 CODE_TO_UNIT_FN = {
-
-    # -------------------------
-    # Scale B codes
-    # -------------------------
+    # Scale B
     "TCM/ICC": units_scale_b,
     "Psychosocial Rehab - Individual": units_scale_b,
     "Psychosocial Rehabilitation Group": units_scale_b,
@@ -402,23 +323,16 @@ CODE_TO_UNIT_FN = {
     "Brief Contact Note": units_scale_b,
     "Targeted Outreach": units_scale_b,
 
-    # -------------------------
-    # Scale C (Individual Therapy)
-    # -------------------------
+    # Scale C
     "Individual Therapy": units_individual_therapy_scale_c,
 
-    # -------------------------
-    # Scale D (Assessment LPHA)
-    # -------------------------
+    # Scale D
     "Assessment LPHA": units_assessment_lpha_scale_d,
 
-    # -------------------------
-    # Scale E (Family Therapy)
-    # -------------------------
+    # Scale E
     "Family Therapy": units_family_therapy_scale_e,
     "Family Therapy - client present": units_family_therapy_scale_e,
 }
-
 
 # -----------------------------
 # Data Structures
@@ -438,7 +352,6 @@ class Results:
     documentation_pct: float
     travel_pct: float
 
-
 # -----------------------------
 # Utility functions
 # -----------------------------
@@ -449,7 +362,6 @@ def normalize_header(value: Any) -> str:
     s = s.replace("\r", " ").replace("\n", " ").replace("\t", " ")
     s = " ".join(s.split())
     return s.strip()
-
 
 def canonicalize_headers(cols: List[Any]) -> Dict[Any, str]:
     mapping: Dict[Any, str] = {}
@@ -478,7 +390,6 @@ def canonicalize_headers(cols: List[Any]) -> Dict[Any, str]:
         mapping[c] = n
     return mapping
 
-
 def find_header_row_index_0_based(file_bytes: bytes, scan_rows: int = 40) -> int:
     bio = io.BytesIO(file_bytes)
     preview = pd.read_excel(bio, header=None, nrows=scan_rows, dtype=object)
@@ -494,39 +405,29 @@ def find_header_row_index_0_based(file_bytes: bytes, scan_rows: int = 40) -> int
         "within the first rows of the spreadsheet."
     )
 
-
 def load_excel_auto_header(file_bytes: bytes, dtype=object) -> Tuple[pd.DataFrame, int]:
     header_idx = find_header_row_index_0_based(file_bytes)
     bio = io.BytesIO(file_bytes)
     df = pd.read_excel(bio, header=header_idx, dtype=dtype)
     return df, header_idx
 
-
 def round_minutes_worked(m: float) -> float:
     return round(m, 1)
-
 
 def round_pct(p: float) -> float:
     return round(p, 2)
 
-
 def units_for_row(code: str, minutes: float) -> int:
-    """
-    Returns units for a single row based on the code's assigned scale.
-    Non-billable codes always return 0 units.
-    """
     if code in NON_BILLABLE_CODES:
         return 0
 
     fn = CODE_TO_UNIT_FN.get(code)
     if fn is None:
-        # If it's valid but not mapped, we should not guess.
         raise ValueError(
             f"UNIT SCALE NOT CONFIGURED for code: '{code}'. "
             "This code is in VALID_CODES but has no unit scale mapping."
         )
     return int(fn(minutes))
-
 
 def compute_pass(
     hours_worked: float,
@@ -613,7 +514,7 @@ def compute_pass(
         travel_pct=round_pct(travel_pct),
     )
 
-       # Audit (saved only for download, not displayed)
+    # Audit (saved only for download, not displayed)
     if audit is not None:
         audit["header_row_1_indexed"] = int(header_idx + 1)
         audit["original_columns"] = [str(c) for c in original_cols]
@@ -646,9 +547,7 @@ def compute_pass(
             "travel_pct_raw": travel_pct,
         }
 
-
     return res
-
 
 def compare_results(p1: Results, p2: Results) -> Tuple[bool, List[str]]:
     mismatches: List[str] = []
@@ -662,7 +561,6 @@ def compare_results(p1: Results, p2: Results) -> Tuple[bool, List[str]]:
     if abs(p1.minutes_worked - p2.minutes_worked) > TOL_MINUTES_WORKED:
         mm("Minutes_Worked", p1.minutes_worked, p2.minutes_worked)
 
-    # exact match requirements
     if p1.minutes_billed != p2.minutes_billed:
         mm("Minutes_Billed", p1.minutes_billed, p2.minutes_billed)
     if p1.units_billed != p2.units_billed:
@@ -674,7 +572,6 @@ def compare_results(p1: Results, p2: Results) -> Tuple[bool, List[str]]:
     if p1.travel_total != p2.travel_total:
         mm("Travel_Time_Total", p1.travel_total, p2.travel_total)
 
-    # percentage tolerance
     pct_fields = [
         ("Billable_Minutes_Percentage", p1.billable_minutes_pct, p2.billable_minutes_pct),
         ("Billable_Units_Percentage", p1.billable_units_pct, p2.billable_units_pct),
@@ -688,39 +585,49 @@ def compare_results(p1: Results, p2: Results) -> Tuple[bool, List[str]]:
 
     return (len(mismatches) == 0, mismatches)
 
-
+# -----------------------------
+# Results Display (Metric Cards)
+# -----------------------------
 def print_final(res: Results) -> None:
     st.success("VERIFICATION PASSED ✅")
 
-    st.write(f"**Hours Worked:** {res.hours_worked}")
-    st.write(f"**Minutes Worked:** {res.minutes_worked}")
+    c1, c2 = st.columns(2)
+    c1.metric("Hours Worked", f"{res.hours_worked}")
+    c2.metric("Minutes Worked", f"{res.minutes_worked}")
 
-    st.write("")
-    st.write(f"**Minutes Billed:** {res.minutes_billed}")
-    st.write(f"**Billable Minutes Percentage:** {res.billable_minutes_pct}%")
+    st.markdown("")
 
-    st.write("")
-    st.write(f"**Units Billed:** {res.units_billed}")
-    st.write(f"**Billable Units Percentage:** {res.billable_units_pct}%")
+    c3, c4 = st.columns(2)
+    c3.metric("Minutes Billed", f"{res.minutes_billed}")
+    c4.metric("Billable Minutes %", f"{res.billable_minutes_pct}%")
 
-    st.write("")
-    st.write(f"**Non-Billable Total:** {res.non_billable_total}")
-    st.write(f"**Non-Billable Percentage:** {res.non_billable_pct}%")
+    st.markdown("")
 
-    st.write("")
-    st.write(f"**Documentation Time Total:** {res.documentation_total}")
-    st.write(f"**Documentation Percentage:** {res.documentation_pct}%")
+    c5, c6 = st.columns(2)
+    c5.metric("Units Billed", f"{res.units_billed}")
+    c6.metric("Billable Units %", f"{res.billable_units_pct}%")
 
-    st.write("")
-    st.write(f"**Travel Time Total:** {res.travel_total}")
-    st.write(f"**Travel Percentage:** {res.travel_pct}%")
+    st.markdown("")
 
+    c7, c8 = st.columns(2)
+    c7.metric("Non-Billable Total", f"{res.non_billable_total}")
+    c8.metric("Non-Billable %", f"{res.non_billable_pct}%")
+
+    st.markdown("")
+
+    c9, c10 = st.columns(2)
+    c9.metric("Documentation Total", f"{res.documentation_total}")
+    c10.metric("Documentation %", f"{res.documentation_pct}%")
+
+    st.markdown("")
+
+    c11, c12 = st.columns(2)
+    c11.metric("Travel Total", f"{res.travel_total}")
+    c12.metric("Travel %", f"{res.travel_pct}%")
 
 # -----------------------------
 # Streamlit UI (Hidden Math)
 # -----------------------------
-st.set_page_config(page_title="Mike's Productivity/Unit Machine for Therapist", layout="centered")
-
 st.markdown("---")
 st.subheader("Need help running this app?")
 
@@ -743,8 +650,6 @@ if need_howto == "Yes":
     except FileNotFoundError:
         st.warning("How-To document file not found in the app repo. Tell Mike.")
 
-
-
 # Session init
 if "last_result" not in st.session_state:
     st.session_state["last_result"] = None
@@ -755,13 +660,11 @@ if "last_error" not in st.session_state:
 if "reset_counter" not in st.session_state:
     st.session_state["reset_counter"] = 0
 
-
 def do_reset() -> None:
     st.session_state["reset_counter"] += 1
     st.session_state["last_result"] = None
     st.session_state["last_audit_payload"] = None
     st.session_state["last_error"] = None
-
 
 k = st.session_state["reset_counter"]
 hours_key = f"hours_{k}"
@@ -785,7 +688,6 @@ with col_reset:
 
 st.divider()
 
-
 def fail(msg: str) -> None:
     msg = (msg or "").strip()
     if not msg.endswith("Tell Mike."):
@@ -793,7 +695,6 @@ def fail(msg: str) -> None:
     st.session_state["last_error"] = msg
     st.error(msg)
     st.stop()
-
 
 if run:
     st.session_state["last_error"] = None
@@ -851,8 +752,6 @@ if run:
         },
     }
     st.rerun()
-
-
 
 if st.session_state["last_error"]:
     st.error(st.session_state["last_error"])
