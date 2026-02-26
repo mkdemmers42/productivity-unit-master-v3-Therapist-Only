@@ -574,17 +574,20 @@ def render_time_pie(res: Results) -> None:
     )
 
     fig.update_traces(
-        marker=dict(colors=df["Color"].tolist()),
-        textinfo="percent+label"
-    )
+    marker=dict(colors=df["Color"].tolist()),
+    textinfo="percent+label",
+    textfont=dict(size=16)  # Increase slice label size
+)
 
-    fig.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#e6edf3"),
-        legend=dict(font=dict(color="#e6edf3")),
-        margin=dict(l=10, r=10, t=10, b=10),
-    )
+fig.update_layout(
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    font=dict(color="#e6edf3", size=16),  # Global font size
+    legend=dict(
+        font=dict(color="#e6edf3", size=16)  # Legend font size
+    ),
+    margin=dict(l=10, r=10, t=10, b=10),
+)
 
     st.plotly_chart(fig, use_container_width=True)
 
