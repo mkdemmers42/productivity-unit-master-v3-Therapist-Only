@@ -534,7 +534,13 @@ def render_time_pie(res: Results) -> None:
     travel_minutes = float(res.travel_total)
     documentation_minutes = float(res.documentation_total)
 
-    accounted_minutes = units_minutes + non_billable_minutes + travel_minutes + documentation_minutes
+    accounted_minutes = (
+        units_minutes
+        + non_billable_minutes
+        + travel_minutes
+        + documentation_minutes
+    )
+
     unaccounted_minutes = max(0.0, total_minutes - accounted_minutes)
 
     df = pd.DataFrame({
@@ -562,6 +568,7 @@ def render_time_pie(res: Results) -> None:
     })
 
     df = df[df["Minutes"] > 0].copy()
+
     if df.empty:
         st.info("No time data available to chart.")
         return
@@ -574,20 +581,19 @@ def render_time_pie(res: Results) -> None:
     )
 
     fig.update_traces(
-    marker=dict(colors=df["Color"].tolist()),
-    textinfo="percent+label",
-    textfont=dict(size=16)  # Increase slice label size
-)
+        marker=dict(colors=df["Color"].tolist()),
+        textinfo="percent+label",
+        textfont=dict(size=16)
+    )
 
-fig.update_layout(
-    paper_bgcolor="rgba(0,0,0,0)",
-    plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(color="#e6edf3", size=16),  # Global font size
-    legend=dict(
-        font=dict(color="#e6edf3", size=16)  # Legend font size
-    ),
-    margin=dict(l=10, r=10, t=10, b=10),
-)
+    fig.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#e6edf3", size=16),
+        legend=dict(font=dict(color="#e6edf3", size=16)),
+        margin=dict(l=10, r=10, t=10, b=10),
+    )
+
     st.plotly_chart(fig, use_container_width=True)
 
 # -----------------------------
