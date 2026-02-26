@@ -588,7 +588,6 @@ fig.update_layout(
     ),
     margin=dict(l=10, r=10, t=10, b=10),
 )
-
     st.plotly_chart(fig, use_container_width=True)
 
 # -----------------------------
