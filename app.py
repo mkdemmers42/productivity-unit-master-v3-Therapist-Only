@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import streamlit as st
+import plotly.express as px
 
 # -----------------------------
 # App Config (MUST be first Streamlit call)
@@ -18,11 +19,19 @@ st.set_page_config(
 )
 
 # -----------------------------
-# UI: Blueprint Skin (Option 4)
+# UI: Blueprint Skin (Option 4) + Better Font
 # -----------------------------
 def apply_blueprint_skin():
     st.markdown("""
     <style>
+      /* Import Modern Font */
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+      /* Apply Font Globally */
+      html, body, [class*="css"]  {
+        font-family: 'Inter', sans-serif !important;
+      }
+
       /* -------- Blueprint background (subtle grid) -------- */
       .stApp {
         background-color: #0b1220;
@@ -132,7 +141,6 @@ st.markdown("""
 # -----------------------------
 # MASTER v3 Configuration (Merged Codes + Multi-Grid Billing)
 # -----------------------------
-
 VALID_CODES = {
     # Case manager / rehab / outreach universe
     "TCM/ICC",
@@ -180,137 +188,79 @@ def units_scale_b(minutes: float) -> int:
     else:
         m = float(minutes)
 
-    if m <= 8:
-        return 0
-    if m <= 23:
-        return 1
-    if m <= 38:
-        return 2
-    if m <= 53:
-        return 3
-    if m <= 68:
-        return 4
-    if m <= 83:
-        return 5
-    if m <= 98:
-        return 6
-    if m <= 113:
-        return 7
-    if m <= 128:
-        return 8
-    if m <= 143:
-        return 9
-    if m <= 158:
-        return 10
-    if m <= 173:
-        return 11
-    if m <= 188:
-        return 12
-    if m <= 203:
-        return 13
-    if m <= 218:
-        return 14
-    if m <= 233:
-        return 15
+    if m <= 8: return 0
+    if m <= 23: return 1
+    if m <= 38: return 2
+    if m <= 53: return 3
+    if m <= 68: return 4
+    if m <= 83: return 5
+    if m <= 98: return 6
+    if m <= 113: return 7
+    if m <= 128: return 8
+    if m <= 143: return 9
+    if m <= 158: return 10
+    if m <= 173: return 11
+    if m <= 188: return 12
+    if m <= 203: return 13
+    if m <= 218: return 14
+    if m <= 233: return 15
     return 16
 
 def units_individual_therapy_scale_c(minutes: float) -> int:
     m = 0.0 if minutes is None or (isinstance(minutes, float) and math.isnan(minutes)) else float(minutes)
 
-    if m <= 15:
-        return 0
-    if m <= 30:
-        return 2
-    if m <= 45:
-        return 3
-    if m <= 67:
-        return 4
-    if m <= 82:
-        return 5
-    if m <= 97:
-        return 6
-    if m <= 112:
-        return 7
-    if m <= 127:
-        return 8
-    if m <= 142:
-        return 9
-    if m <= 157:
-        return 10
-    if m <= 172:
-        return 11
-    if m <= 187:
-        return 12
-    if m <= 202:
-        return 13
-    if m <= 217:
-        return 14
-    if m <= 232:
-        return 15
+    if m <= 15: return 0
+    if m <= 30: return 2
+    if m <= 45: return 3
+    if m <= 67: return 4
+    if m <= 82: return 5
+    if m <= 97: return 6
+    if m <= 112: return 7
+    if m <= 127: return 8
+    if m <= 142: return 9
+    if m <= 157: return 10
+    if m <= 172: return 11
+    if m <= 187: return 12
+    if m <= 202: return 13
+    if m <= 217: return 14
+    if m <= 232: return 15
     return 16
 
 def units_assessment_lpha_scale_d(minutes: float) -> int:
     m = 0.0 if minutes is None or (isinstance(minutes, float) and math.isnan(minutes)) else float(minutes)
 
-    if m <= 30:
-        return 0
-    if m <= 45:
-        return 3
-    if m <= 67:
-        return 4
-    if m <= 82:
-        return 5
-    if m <= 97:
-        return 6
-    if m <= 112:
-        return 7
-    if m <= 127:
-        return 8
-    if m <= 142:
-        return 9
-    if m <= 157:
-        return 10
-    if m <= 172:
-        return 11
-    if m <= 187:
-        return 12
-    if m <= 202:
-        return 13
-    if m <= 217:
-        return 14
-    if m <= 232:
-        return 15
+    if m <= 30: return 0
+    if m <= 45: return 3
+    if m <= 67: return 4
+    if m <= 82: return 5
+    if m <= 97: return 6
+    if m <= 112: return 7
+    if m <= 127: return 8
+    if m <= 142: return 9
+    if m <= 157: return 10
+    if m <= 172: return 11
+    if m <= 187: return 12
+    if m <= 202: return 13
+    if m <= 217: return 14
+    if m <= 232: return 15
     return 16
 
 def units_family_therapy_scale_e(minutes: float) -> int:
     m = 0.0 if minutes is None or (isinstance(minutes, float) and math.isnan(minutes)) else float(minutes)
 
-    if m <= 26:
-        return 0
-    if m <= 57:
-        return 4
-    if m <= 72:
-        return 5
-    if m <= 87:
-        return 6
-    if m <= 102:
-        return 7
-    if m <= 117:
-        return 8
-    if m <= 132:
-        return 9
-    if m <= 147:
-        return 10
-    if m <= 162:
-        return 11
-    if m <= 177:
-        return 12
-    if m <= 192:
-        return 13
-    if m <= 207:
-        return 14
-    if m <= 222:
-        return 15
+    if m <= 26: return 0
+    if m <= 57: return 4
+    if m <= 72: return 5
+    if m <= 87: return 6
+    if m <= 102: return 7
+    if m <= 117: return 8
+    if m <= 132: return 9
+    if m <= 147: return 10
+    if m <= 162: return 11
+    if m <= 177: return 12
+    if m <= 192: return 13
+    if m <= 207: return 14
+    if m <= 222: return 15
     return 16
 
 CODE_TO_UNIT_FN = {
@@ -340,7 +290,8 @@ CODE_TO_UNIT_FN = {
 @dataclass(frozen=True)
 class Results:
     hours_worked: float
-    minutes_worked: float
+    minutes_worked_raw: float  # full precision for chart math
+    minutes_worked: float      # rounded display minutes
     minutes_billed: int
     units_billed: int
     non_billable_total: int
@@ -436,56 +387,46 @@ def compute_pass(
 ) -> Results:
     minutes_worked_raw = hours_worked * 60.0
 
-    # Load (AUTO header detection)
     df, header_idx = load_excel_auto_header(file_bytes, dtype=object)
 
-    # Normalize / canonicalize headers
     original_cols = list(df.columns)
     mapping = canonicalize_headers(original_cols)
     df = df.rename(columns=mapping)
 
-    # Confirm required columns exist
     for col in REQUIRED_COLS_CANONICAL:
         if col not in df.columns:
             raise ValueError(f"MISSING REQUIRED COLUMN: {col}")
 
-    # Clean Procedure Code Name
     df["Procedure Code Name"] = df["Procedure Code Name"].astype(str).str.strip()
-
-    # Exclude rows containing "total"
     df = df[~df["Procedure Code Name"].str.contains("total", case=False, na=False)].copy()
 
-    # Numeric coercion + zero fill
     minute_cols = ["Travel Time", "Documentation Time", "Face-to-Face Time"]
     for c in minute_cols:
         df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0)
 
-    # Procedure code validation
     invalid = sorted(set(df["Procedure Code Name"].unique()) - VALID_CODES)
     if invalid:
         raise ValueError("INVALID PROCEDURE CODE(S) FOUND:\n" + "\n".join(invalid))
 
-    # Totals
-    non_billable_total = int(
+    # Totals (round instead of truncating)
+    non_billable_total = int(round(
         df.loc[df["Procedure Code Name"].isin(NON_BILLABLE_CODES), "Face-to-Face Time"].sum()
-    )
-    documentation_total = int(df["Documentation Time"].sum())
-    travel_total = int(df["Travel Time"].sum())
+    ))
+    documentation_total = int(round(df["Documentation Time"].sum()))
+    travel_total = int(round(df["Travel Time"].sum()))
 
-    minutes_billed = int(
+    minutes_billed = int(round(
         df.loc[df["Procedure Code Name"].isin(BILLABLE_FACE_TO_FACE_CODES), "Face-to-Face Time"].sum()
-    )
+    ))
 
-    # Units billed: apply per-code unit mapping row-by-row
     billable_rows = df[df["Procedure Code Name"].isin(BILLABLE_FACE_TO_FACE_CODES)].copy()
-    units_billed = int(
+    units_billed = int(round(
         billable_rows.apply(
             lambda r: units_for_row(str(r["Procedure Code Name"]), float(r["Face-to-Face Time"])),
             axis=1
         ).sum()
-    )
+    ))
 
-    # Percentages
     if minutes_worked_raw == 0:
         billable_minutes_pct = 0.0
         billable_units_pct = 0.0
@@ -501,6 +442,7 @@ def compute_pass(
 
     res = Results(
         hours_worked=float(hours_worked),
+        minutes_worked_raw=float(minutes_worked_raw),
         minutes_worked=round_minutes_worked(minutes_worked_raw),
         minutes_billed=minutes_billed,
         units_billed=units_billed,
@@ -514,7 +456,6 @@ def compute_pass(
         travel_pct=round_pct(travel_pct),
     )
 
-    # Audit (saved only for download, not displayed)
     if audit is not None:
         audit["header_row_1_indexed"] = int(header_idx + 1)
         audit["original_columns"] = [str(c) for c in original_cols]
@@ -526,10 +467,7 @@ def compute_pass(
             "Scale B": sorted([c for c, fn in CODE_TO_UNIT_FN.items() if fn == units_scale_b]),
             "Scale C": ["Individual Therapy"],
             "Scale D": ["Assessment LPHA"],
-            "Scale E": [
-                "Family Therapy",
-                "Family Therapy - client present",
-            ],
+            "Scale E": ["Family Therapy", "Family Therapy - client present"],
             "Non-Billable": sorted(list(NON_BILLABLE_CODES)),
         }
 
@@ -586,14 +524,79 @@ def compare_results(p1: Results, p2: Results) -> Tuple[bool, List[str]]:
     return (len(mismatches) == 0, mismatches)
 
 # -----------------------------
-# Results Display (Metric Cards)
+# Pie Chart (based on existing computed Results only)
+# -----------------------------
+def render_time_pie(res: Results) -> None:
+    total_minutes = float(res.minutes_worked_raw)
+
+    units_minutes = float(res.units_billed) * 15.0
+    non_billable_minutes = float(res.non_billable_total)
+    travel_minutes = float(res.travel_total)
+    documentation_minutes = float(res.documentation_total)
+
+    accounted_minutes = units_minutes + non_billable_minutes + travel_minutes + documentation_minutes
+    unaccounted_minutes = max(0.0, total_minutes - accounted_minutes)
+
+    df = pd.DataFrame({
+        "Category": [
+            "Units Billed",
+            "Non-Billable",
+            "Drive Time",
+            "Documentation",
+            "Unaccounted Time",
+        ],
+        "Minutes": [
+            units_minutes,
+            non_billable_minutes,
+            travel_minutes,
+            documentation_minutes,
+            unaccounted_minutes,
+        ],
+        "Color": [
+            "#16a34a",  # Units Billed (green)
+            "#f97316",  # Non-Billable (orange)
+            "#2563eb",  # Drive Time (blue)
+            "#eab308",  # Documentation (yellow)
+            "#dc2626",  # Unaccounted Time (red)
+        ],
+    })
+
+    df = df[df["Minutes"] > 0].copy()
+    if df.empty:
+        st.info("No time data available to chart.")
+        return
+
+    fig = px.pie(
+        df,
+        names="Category",
+        values="Minutes",
+        hole=0.0,
+    )
+
+    fig.update_traces(
+        marker=dict(colors=df["Color"].tolist()),
+        textinfo="percent+label"
+    )
+
+    fig.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#e6edf3"),
+        legend=dict(font=dict(color="#e6edf3")),
+        margin=dict(l=10, r=10, t=10, b=10),
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+# -----------------------------
+# Results Display (Metric Cards + Pie)
 # -----------------------------
 def print_final(res: Results) -> None:
     st.success("VERIFICATION PASSED ✅")
 
     c1, c2 = st.columns(2)
-    c1.metric("Hours Worked", f"{res.hours_worked}")
-    c2.metric("Minutes Worked", f"{res.minutes_worked}")
+    c1.metric("Hours Worked", f"{res.hours_worked:.2f}")
+    c2.metric("Minutes Worked", f"{res.minutes_worked:.1f}")
 
     st.markdown("")
 
@@ -625,6 +628,10 @@ def print_final(res: Results) -> None:
     c11.metric("Travel Total", f"{res.travel_total}")
     c12.metric("Travel %", f"{res.travel_pct}%")
 
+    st.markdown("---")
+    st.markdown("### Time Breakdown (Based on Hours Worked)")
+    render_time_pie(res)
+
 # -----------------------------
 # Streamlit UI (Hidden Math)
 # -----------------------------
@@ -650,7 +657,6 @@ if need_howto == "Yes":
     except FileNotFoundError:
         st.warning("How-To document file not found in the app repo. Tell Mike.")
 
-# Session init
 if "last_result" not in st.session_state:
     st.session_state["last_result"] = None
 if "last_audit_payload" not in st.session_state:
@@ -709,7 +715,6 @@ if run:
 
     file_bytes = uploaded.getvalue()
 
-    # PASS 1
     audit1: Dict[str, Any] = {}
     try:
         pass1 = compute_pass(hours_worked, file_bytes, audit=audit1)
@@ -718,7 +723,6 @@ if run:
     except Exception as e:
         fail(f"ERROR LOADING/PROCESSING FILE: {e}")
 
-    # PASS 2 (verification recompute from scratch)
     audit2: Dict[str, Any] = {}
     try:
         pass2 = compute_pass(hours_worked, file_bytes, audit=audit2)
@@ -738,6 +742,7 @@ if run:
         "pass2": audit2,
         "final": {
             "hours_worked": pass1.hours_worked,
+            "minutes_worked_raw": pass1.minutes_worked_raw,
             "minutes_worked": pass1.minutes_worked,
             "minutes_billed": pass1.minutes_billed,
             "units_billed": pass1.units_billed,
